@@ -1,37 +1,41 @@
+from pprint import pprint
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 import os
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langchain_core.prompts import ChatPromptTemplate
-
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+import LearningTool
 # Load environment variables from .env file
 load_dotenv()
 
 # Get the OpenAI API key from environment variables
 api_key = os.getenv("OPENAI_API_KEY")
 
-llm = ChatOpenAI(model="gpt-5.4", api_key=api_key)
+llm = ChatOpenAI(model="gpt-5.4", api_key=api_key) 
+llm_with_tools = llm.bind_tools([LearningTool.get_current_weather])
+messages = [
+    SystemMessage(content="你是一個能及時查詢天氣的助理"),
+    HumanMessage(content="請問現在台灣新竹市的天氣如何？")
+]
 
-messages = [SystemMessage(content="你是一個專業的醫學工程師，尤其擅長中醫脈診相關的知識。")]
+response = llm_with_tools.invoke(messages)
+pprint(response.tool_calls)
 
-messages.append(HumanMessage(content="請問中醫脈診的基本原理是什麼？"))
+if response.tool_calls:
+    tool_response = response.tool_calls[0]
+    weather_result = LearningTool.get_current_weather.invoke(input = tool_response.get('args'))
 
-response = llm.invoke(messages)
-print(response.content)
+    messages.append(AIMessage(content="", tool_calls=[tool_response]))
+    messages.append(ToolMessage(content= weather_result, tool_call_id = tool_response["id"]))
+    messages.append(HumanMessage(content="請問現在新竹市的天氣如何，需要帶傘嗎?"))
 
-messages.append(AIMessage(content=response.content))
+    response_final = llm_with_tools.invoke(messages)
+    print(response_final.content)
 
-messages.append(HumanMessage(content="如果要開發一個脈診儀協助中醫師診斷脈象，推薦要用螺桿馬達還是氣囊式施壓？"))
-response = llm.invoke(messages)
-print(response.content)
-# if isExist:
-#     print("成功載入 .env 檔案")
+else:
+    print(f"LLM 回應: {response.content}")
 
-# client = OpenAI()
-# response = client.chat.completions.create(
-#     model="gpt-5.4", messages=[
-#         {"role": "user", "content": "你是誰？"},
-#     ] )
 
-# print(response.choices[0].message.content)
+
+# Learning ToolMessage
 
