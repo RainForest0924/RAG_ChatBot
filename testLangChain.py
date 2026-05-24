@@ -5,13 +5,14 @@ import os
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 import LearningTool
+
 # Load environment variables from .env file
 load_dotenv()
 
 # Get the OpenAI API key from environment variables
-api_key = os.getenv("OPENAI_API_KEY")
+#api_key = os.getenv("OPENAI_API_KEY")
 
-llm = ChatOpenAI(model="gpt-5.4", api_key=api_key) 
+llm = ChatOpenAI(model="gpt-5.4") 
 
 reference_text = """
 「脈象」是中醫「望、聞、問、切」四診中「切診」的核心，指手指感覺到的脈搏跳動形象。
@@ -37,5 +38,4 @@ prompt_value = pulse_prompt.invoke({"ref_text": reference_text,
 response = llm.invoke(prompt_value)
 print(response.content)
 
-# Learning ToolMessage
 
