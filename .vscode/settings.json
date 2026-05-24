@@ -1,0 +1,18 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.pythonProjects": [
+        {
+            "path": "LearningTool.py",
+            "envManager": "ms-python.python:system",
+            "packageManager": "ms-python.python:pip"
+        },
+        {
+            "path": "testLangChain.py",
+            "envManager": "ms-python.python:system",
+            "packageManager": "ms-python.python:pip"
+        }
+    ],
+    
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic"
+}
