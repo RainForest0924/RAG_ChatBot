@@ -1,11 +1,10 @@
 from pprint import pprint
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_core.documents  import Document
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough, RunnableBranch
+from langchain_core.output_parsers import StrOutputParser
 
 # Load environment variables from .env file
 load_dotenv()
@@ -15,32 +14,30 @@ load_dotenv()
 
 llm = ChatOpenAI(model="gpt-5.4")
 
-# Generate Keywords
-keywords_prompt = ChatPromptTemplate.from_messages([
-    ("system", "你是一個關鍵詞的生成助手"),
-    ("user", "請產生一個適合用於搜尋的關鍵字，關於：{input}")
+# Define Chain
+rag_template = ChatPromptTemplate.from_messages([
+    ("human", "請解釋一下什麼是{input}?")
 ])
-keyword_chain = keywords_prompt | llm
 
-# Search based on keywords
-search_prompt = ChatPromptTemplate.from_messages([
-    ("system", "妳是一個搜尋與資料統整助手。"),
-    ("user", "請根據以下關鍵字搜尋相關的資訊：{keywords}")
+general_template = ChatPromptTemplate.from_messages([
+    ("human", "請回答一般的問題:{input}?")
 ])
-search_chain = search_prompt | llm
 
-# Combine
-chain = (
-    {"keywords": keyword_chain, "input": RunnablePassthrough()} |
-    RunnableLambda(lambda x: {
-        "keywords": x["keywords"].content 
-    }) |
-    search_prompt | 
-    llm
+rag_chain = rag_template | llm | StrOutputParser()
+general_chain = general_template | llm | StrOutputParser()
+
+def route_condition(input_text: str):
+    if "RAG" in input_text or "rag" in input_text.upper():
+        return "rag_chain"
+    else:
+        return "general_chain"
+
+branch = RunnableBranch(
+    (lambda x: route_condition(x["input"]) == "rag_chain", rag_chain),
+    (lambda x: route_condition(x["input"]) == "general_chain", general_chain),
+    general_chain  # Default to general_chain if no condition matches
 )
 
-input_text = "RAG在醫療領域如何應用"
-results = chain.invoke(input_text)
-
-print("關鍵字： ",  keyword_chain.invoke({"input": input_text}).content)
-print("搜尋結果： ", results.content)
+# Test results
+result = branch.invoke({"input": "RAG系統的用途是什麼，用100字內回答?"})
+print(f"RAG Chain Result: {result}")
