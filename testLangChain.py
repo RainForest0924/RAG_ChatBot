@@ -5,11 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough, RunnableBranch
 from langchain_core.output_parsers import StrOutputParser
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.agents import create_agent
-from langchain.tools import tool
-import LearningTool
-
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
 # Load environment variables from .env file
 load_dotenv()
@@ -19,33 +15,21 @@ load_dotenv()
 
 llm = ChatOpenAI(model="gpt-5.4")
 
-tools = [LearningTool.calculator, LearningTool.search_wikipedia]
+# Learning Managing Conversation History
+messages = []
 
-agent = create_agent(
-    model=llm, 
-    tools=tools,
-    system_prompt = """
-    你是一個AI助手，專門用來回答使用者的問題。你可以使用以下工具來幫助你回答問題：
-    1. 若需查詢資料，請使用LearningTool.search_wikipedia工具；
-    2. 若需計算數學公式，請使用LearningTool.calculato；
-    3. 若經過您的判斷不需要使用上述兩個工具即可回答，則可直接回答。
-"""
-    )
-
-query = "台灣最高的山是哪一座，海拔多高？高度是幾公尺？台灣101的高度是幾公尺？台灣最高的山高度相當於幾座101？"
-
-answer = agent.invoke(
-    {
-        "messages":[
-            {
-                "role":"user",
-                "content":query
-            }
-        ]
-    }
+messages.append(
+    SystemMessage(content="你是一個中醫專家，尤其在脈象領域深耕數十年，造詣頗深。現在想向您請教脈診的問題")
 )
+messages.append(HumanMessage("什麼是滑脈，請用簡短三句話解釋?"))
 
-print("Answer:")
-for i in range(len(answer["messages"])):
-    print(answer["messages"][i].type)
-    print(answer["messages"][i].content)
+response = llm.invoke(messages)
+
+print(response.content)
+messages.append(response)
+
+messages.append(HumanMessage("滑脈的特徵是什麼?您剛才提到的那些體質又代表什麼樣的生理狀態，請依然用簡短的十句內語句解釋?"))
+
+response = llm.invoke(messages)
+print(response.content)
+messages.append(response)
