@@ -6,6 +6,15 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough, RunnableBranch
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_community.chat_message_histories import SQLChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+def get_session_history(session_id: str) -> SQLChatMessageHistory:
+    """
+    Retrieve the chat message history for a given session ID.
+    """
+    return SQLChatMessageHistory(session_id=session_id,
+                                 connection = "sqlite:///chat_history.db")
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,20 +25,39 @@ load_dotenv()
 llm = ChatOpenAI(model="gpt-5.4")
 
 # Learning Managing Conversation History
-messages = []
-
-messages.append(
-    SystemMessage(content="你是一個中醫專家，尤其在脈象領域深耕數十年，造詣頗深。現在想向您請教脈診的問題")
+chat_with_memory = RunnableWithMessageHistory(
+    llm,
+    get_session_history,
 )
-messages.append(HumanMessage("什麼是滑脈，請用簡短三句話解釋?"))
 
-response = llm.invoke(messages)
+response = chat_with_memory.invoke(
+    [
+        SystemMessage(content="你是一個在脈象方面有專業知識且深耕數十載的中醫師。"),
+        HumanMessage(content="請問脈象中，什麼是澀脈？用三句話簡短回答")
+    ],
+    config={"configurable": {
+            "session_id": "Tony2"}
+    }
+)
 
 print(response.content)
-messages.append(response)
 
-messages.append(HumanMessage("滑脈的特徵是什麼?您剛才提到的那些體質又代表什麼樣的生理狀態，請依然用簡短的十句內語句解釋?"))
+response = chat_with_memory.invoke(
+    [
+        HumanMessage(content="您剛才解釋的澀脈，有哪些典型的體質跟症狀？")
+    ],
+    config={"configurable": {
+            "session_id": "Tony2"}
+    }
+)
 
-response = llm.invoke(messages)
 print(response.content)
-messages.append(response)
+
+for msg in get_session_history("Tony2").messages:
+    if isinstance(msg, SystemMessage):
+        print(f"System: {msg.content}")
+    elif isinstance(msg, HumanMessage):
+        print(f"Human: {msg.content}")
+    elif isinstance(msg, AIMessage):
+        print(f"AI: {msg.content}")
+
