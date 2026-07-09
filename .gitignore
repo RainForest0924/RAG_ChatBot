@@ -3,3 +3,4 @@ Env/
 __pycache__/
 GPTAnswer.docx
 *.db
+.streamlit/
