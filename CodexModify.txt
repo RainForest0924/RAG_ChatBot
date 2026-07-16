@@ -1,0 +1,8 @@
+[2026-07-14]
+- Created CodexModify.txt to record approved modifications made by Codex in this folder.
+- Updated requirements.txt after user approval:
+  - Added selenium==4.45.0 for crawlers.py Selenium browser automation.
+  - Added fake-useragent==2.2.0 for crawlers.py user-agent generation.
+  - Added openai==2.36.0 for Learning/testLangChain.py OpenAI import.
+  - Added pymongo==4.17.0 for Learning/testLangChain.py MongoDB client usage.
+  - Added langchain-mongodb==0.11.0 for Learning/testLangChain.py MongoDB Atlas vector search usage.
