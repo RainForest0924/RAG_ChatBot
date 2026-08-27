@@ -93,7 +93,11 @@ if __name__ == "__main__":
         datasets = json.load(f)
     
     options = Options()
-    options.add_argument("--headless")
+    options.binary_location = "/usr/bin/chromium"
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
     options.add_argument(f"user-agent={UserAgent().random}")
     options.page_load_strategy = "eager"
     browser = Chrome(options=options)
