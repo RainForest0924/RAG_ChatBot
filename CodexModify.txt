@@ -6,3 +6,9 @@
   - Added openai==2.36.0 for Learning/testLangChain.py OpenAI import.
   - Added pymongo==4.17.0 for Learning/testLangChain.py MongoDB client usage.
   - Added langchain-mongodb==0.11.0 for Learning/testLangChain.py MongoDB Atlas vector search usage.
+
+[2026-08-26]
+- Updated crawlers.py after user approval:
+  - Changed crawler persistence from one final full-run insert to one insert after each dataset/department completes.
+  - Added per-dataset result accumulation with dataset_results to avoid losing previous departments if a later browser step fails.
+  - Initialized symptom_list_select before applying SYMPTOM_LIMIT so departments with 50 or fewer symptoms do not raise an undefined-variable error.

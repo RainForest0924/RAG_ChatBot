@@ -8,8 +8,43 @@ from datetime import datetime
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from fake_useragent import UserAgent
 from selenium.webdriver.support.ui import Select
+
+PAGE_LOAD_TIMEOUT = 60
+GET_RETRIES = 3
+SYMPTOM_LIMIT = 50
+
+
+def safe_get(browser: Chrome, url: str, retries: int = GET_RETRIES) -> bool:
+    """
+    Load a page with retries so one slow response does not stop the whole crawler.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            browser.get(url)
+            return True
+        except TimeoutException as e:
+            print(f"Timeout loading page ({attempt}/{retries}): {url}")
+            print(f"Error: {e}")
+        except WebDriverException as e:
+            print(f"WebDriver error loading page ({attempt}/{retries}): {url}")
+            print(f"Error: {e}")
+        except Exception as e:
+            print(f"Unexpected error loading page ({attempt}/{retries}): {url}")
+            print(f"Error: {e}")
+
+        try:
+            browser.execute_script("window.stop();")
+        except Exception:
+            pass
+
+        if attempt < retries:
+            time.sleep(5 * attempt)
+
+    return False
+
 
 def get_paragraph(chrome: Chrome):
     """
@@ -60,38 +95,55 @@ if __name__ == "__main__":
     options = Options()
     options.add_argument("--headless")
     options.add_argument(f"user-agent={UserAgent().random}")
+    options.page_load_strategy = "eager"
     browser = Chrome(options=options)
+    browser.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
     browser.maximize_window()
     browser.implicitly_wait(10)
 
-    results = []
+    try:
+        for dataset in datasets:
+            dataset_results = []
 
-    for dataset in datasets:
-        browser.get(dataset["start_url"])
+            if not safe_get(browser, dataset["start_url"]):
+                print(f"Skip dataset because start page failed: {dataset['department']}")
+                continue
 
-        print(f"Processing {dataset['department']}")
-        
-        symptom_select_menu = browser.find_element(By.CSS_SELECTOR, "select[name='q_type']")     
-        symptom_list = [tmp.get_attribute("value") for tmp in symptom_select_menu.find_elements(
-            By.TAG_NAME, "option") if tmp.get_attribute("value")]
-        
-        for symptom in symptom_list:
-            print(f"Processing {symptom}")
-            url = (f"https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?"
-                   f"UrlClass={dataset['department']}&q_like=0&q_type={symptom}")
-            browser.get(url)
-            datas = []
-            page = 1
+            print(f"Processing {dataset['department']}")
 
-            while browser.find_elements(By.CSS_SELECTOR, "ul.QAunit"):
-                datas.extend(list(get_paragraph(browser)))
+            symptom_select_menu = browser.find_element(By.CSS_SELECTOR, "select[name='q_type']")     
+            symptom_list = [tmp.get_attribute("value") for tmp in symptom_select_menu.find_elements(
+                By.TAG_NAME, "option") if tmp.get_attribute("value")]
 
-                page += 1
-                tmp_url = url + f"&PageNo={page}"
-                time.sleep(random.randint(4, 8))
-                browser.get(tmp_url)
+            symptom_list_select = symptom_list
+            if len(symptom_list) > SYMPTOM_LIMIT:
+                symptom_list_select = random.sample(symptom_list, SYMPTOM_LIMIT)
 
-            results.extend(datas)
-    
-    browser.quit()
-    utils.insert_symptom_subject_datas(results)
+            for symptom in symptom_list_select:
+                print(f"Processing {symptom}")
+                url = (f"https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?"
+                       f"UrlClass={dataset['department']}&q_like=0&q_type={symptom}")
+                if not safe_get(browser, url):
+                    print(f"Skip symptom because page failed: {symptom}")
+                    continue
+                datas = []
+                page = 1
+
+                while browser.find_elements(By.CSS_SELECTOR, "ul.QAunit"):
+                    datas.extend(list(get_paragraph(browser)))
+
+                    page += 1
+                    tmp_url = url + f"&PageNo={page}"
+                    time.sleep(random.randint(4, 8))
+                    if not safe_get(browser, tmp_url):
+                        print(f"Stop paging because page failed: {tmp_url}")
+                        break
+
+                dataset_results.extend(datas)
+
+            if dataset_results:
+                utils.insert_symptom_subject_datas(dataset_results)
+                print(f"Inserted {len(dataset_results)} records for {dataset['department']}")
+
+    finally:
+        browser.quit()
