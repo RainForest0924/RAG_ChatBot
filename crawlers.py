@@ -123,8 +123,8 @@ if __name__ == "__main__":
             if len(symptom_list) > SYMPTOM_LIMIT:
                 symptom_list_select = random.sample(symptom_list, SYMPTOM_LIMIT)
 
-            for symptom in symptom_list_select:
-                print(f"Processing {symptom}")
+            for (i, symptom) in enumerate(symptom_list_select):
+                print(f"Processing {symptom}_{i}")
                 url = (f"https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?"
                        f"UrlClass={dataset['department']}&q_like=0&q_type={symptom}")
                 if not safe_get(browser, url):
@@ -146,6 +146,7 @@ if __name__ == "__main__":
                 dataset_results.extend(datas)
 
             if dataset_results:
+                print("Start writing data into database~~")
                 utils.insert_symptom_subject_datas(dataset_results)
                 print(f"Inserted {len(dataset_results)} records for {dataset['department']}")
 

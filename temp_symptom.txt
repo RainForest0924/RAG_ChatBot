@@ -38,5 +38,25 @@
   {
     "department": "精神科",
     "start_url": "https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?UrlClass=%BA%EB%AF%AB%AC%EC&q_like=0&q_type=%C5%CA%AA%AB%C2%7D"
-  }
+  },
+  {
+    "department": "內科",
+    "start_url": "https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?UrlClass=%A4%BA%AC%EC&q_like=0&q_type=%EBC%B3%C2%AFl%A9%CA%A6%E5%BA%DE%AA%A2"
+  },
+  {
+    "department": "復健科",
+    "start_url": "https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?UrlClass=%B4_%B0%B7%AC%EC&q_like=0&q_type=%F8%D4%B0%A9%B0%A9%A7%E9"
+  },
+  {
+    "department": "整型外科",
+    "start_url": "https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?UrlClass=%BE%E3%AB%AC%A5%7E%AC%EC&q_like=0&q_type=%F9%AF%B0%A9%B0%A9%A7%E9%B3N%AB%E1"
+  },
+  {
+    "department": "放射線科",
+    "start_url": "https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?UrlClass=%A9%F1%AEg%BDu%AC%EC&q_like=0&q_type=%C5%E3%BCv%BE%AF%A9%CE%BEX%BE%AF"
+  },
+  {
+    "department": "高年科",
+    "start_url": "https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?UrlClass=%B0%AA%A6%7E%AC%EC&q_like=0&q_type=%C0Y%B7w"
+  },
 ]
