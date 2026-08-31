@@ -58,5 +58,5 @@
   {
     "department": "高年科",
     "start_url": "https://sp1.hso.mohw.gov.tw/doctor/Often_question/type_detail.php?UrlClass=%B0%AA%A6%7E%AC%EC&q_like=0&q_type=%C0Y%B7w"
-  },
+  }
 ]
