@@ -54,6 +54,15 @@ def insert_symptom_subject_datas(datas: List[dict]):
             if vectorstore.collection.find_one({"subject_id": data["subject_id"]}):
                 continue
 
-            documents.append(Document(page_content=data.pop("question"), metadata=data))
+            question = data["question"]
+
+            metadata = {
+                key: value
+                for key, value in data.items()
+                if key != "question"
+            }
+
+
+            documents.append(Document(page_content=question, metadata=metadata))
 
         vectorstore.add_documents(documents, batch_size=100)
