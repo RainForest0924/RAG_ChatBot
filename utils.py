@@ -2,6 +2,7 @@ import os
 import tomllib
 import pathlib
 import contextlib
+import streamlit as st
 from typing import List
 
 from pymongo.database import Database
@@ -15,25 +16,28 @@ from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
 @contextlib.contextmanager
 def get_mongo_vectorstore():
 
-    if os.getenv("MONGODB_URI") is None:
-        secret_file = pathlib.Path(__file__).parent / ".streamlit"/ "secrets.toml"
-        with open(secret_file, "rb") as f:
-            config = tomllib.load(f)
-        os.environ["MONGODB_URI"] = config["MONGODB_URI"]
+    mongodb_uri = st.secrets["MONGODB_URI"]
+    openai_api_key = st.secrets["OPENAI_API_KEY"]
 
-    if os.getenv("OPENAI_API_KEY") is None:
-        secret_file = pathlib.Path(__file__).parent / ".streamlit"/ "secrets.toml"
-        with open(secret_file, "rb") as f:
-            config = tomllib.load(f)
-        os.environ["OPENAI_API_KEY"] = config["OPENAI_API_KEY"]
+    # if os.getenv("MONGODB_URI") is None:
+    #     secret_file = pathlib.Path(__file__).parent / ".streamlit"/ "secrets.toml"
+    #     with open(secret_file, "rb") as f:
+    #         config = tomllib.load(f)
+    #     os.environ["MONGODB_URI"] = config["MONGODB_URI"]
 
-    client = MongoClient(host = os.getenv("MONGODB_URI"))
+    # if os.getenv("OPENAI_API_KEY") is None:
+    #     secret_file = pathlib.Path(__file__).parent / ".streamlit"/ "secrets.toml"
+    #     with open(secret_file, "rb") as f:
+    #         config = tomllib.load(f)
+    #     os.environ["OPENAI_API_KEY"] = config["OPENAI_API_KEY"]
+
+    client = MongoClient(host = mongodb_uri)
 
     try:
         database = Database(client, name = "MediGuide")
         vectorstore = MongoDBAtlasVectorSearch(
             collection=Collection(database, name = "Symptom"),
-            embedding=OpenAIEmbeddings(model = "text-embedding-3-small"),
+            embedding=OpenAIEmbeddings(model = "text-embedding-3-small", api_key=openai_api_key),
             index_name="default",
             embedding_key="question_embedding",
             text_key = "question"

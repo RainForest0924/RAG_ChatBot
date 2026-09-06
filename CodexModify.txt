@@ -12,3 +12,10 @@
   - Changed crawler persistence from one final full-run insert to one insert after each dataset/department completes.
   - Added per-dataset result accumulation with dataset_results to avoid losing previous departments if a later browser step fails.
   - Initialized symptom_list_select before applying SYMPTOM_LIMIT so departments with 50 or fewer symptoms do not raise an undefined-variable error.
+
+[2026-09-03]
+- Updated main.py after user approval:
+  - Replaced the supported-departments caption with a clickable sidebar text button.
+  - Added a Streamlit dialog titled "當前支援詢問的科別" listing the currently supported departments.
+  - Added sidebar button hover styling so the text presents as clickable.
+  - Updated the sidebar clickable text color to white and hover color to gray.

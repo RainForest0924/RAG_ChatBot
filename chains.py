@@ -1,5 +1,6 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
+import streamlit as st
 from utils import get_mongo_vectorstore
 
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
@@ -16,8 +17,12 @@ def format_docs(docs):
         subject = doc.metadata.get("subject", "")
         symptom = doc.metadata.get("symptom", "")
         department = doc.metadata.get("department", "")
+        gender = doc.metadata.get("gender", "")
 
         formatted_doc = f"""
+                        患者性別:
+                        {gender}    
+
                         患者主訴:
                         {question}
 
@@ -62,9 +67,8 @@ def get_suggestion_chain(question:str):
         """
     )
 
-    llm = ChatOpenAI(model = "gpt-5.4", temperature = 0, max_tokens = 600)
-
     with get_mongo_vectorstore() as vectorstore:
+        llm = ChatOpenAI(model = "gpt-5.4", temperature = 0, max_tokens = 600, api_key=st.secrets["OPENAI_API_KEY"])
         retriever = vectorstore.as_retriever(search_kwargs = {"k": 4})
         retrieve_chain = {
             "question": RunnablePassthrough(),
@@ -120,5 +124,5 @@ def debug_retriever(question: str):
                 print(f"{key}: {value}")
 
 
-from pprint import pprint
-pprint(get_suggestion_chain("林醫師好:我是寒極生熱體質不知如何用食療法調整體質我吃到寒涼食物馬上手腳長滿尋痲疹吃到燥熱食物就頭頂長大痘和長痔瘡請求指點意見謝謝"))
+# from pprint import pprint
+# pprint(get_suggestion_chain("林醫師好:我是寒極生熱體質不知如何用食療法調整體質我吃到寒涼食物馬上手腳長滿尋痲疹吃到燥熱食物就頭頂長大痘和長痔瘡請求指點意見謝謝"))
