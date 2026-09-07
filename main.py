@@ -3,6 +3,7 @@ import streamlit as st
 from datetime import date
 
 import chains
+import utils
 
 if 'history' not in st.session_state:
     st.session_state['history'] = []
@@ -74,18 +75,32 @@ with st.sidebar:
 st.title("台灣e院問診機器人🏥")
 st.markdown("🔔**提醒**: 本網站目前僅處在問診輔助的測試階段，請勿將網站回答作為診療依據，\
             如若身體不適請就近咨詢醫師取得專業照護建議。")
+utils.write_history()
 
 # Question input
 if question := st.chat_input("請輸入您的問題，或是您想詢問的症狀、疾病、藥物等"):
-    with st.chat_message("user"):
-        st.write(question)
+    utils.set_chat_history("user", question)
 
     if not all([name, id_number, gender, birth_date, blood_type]):
-        with st.chat_message("ai"):
-            st.write("請先在左側填寫完整的使用者基本資料，才能對症下藥，提高回答準確性。")
+        utils.set_chat_history("ai", "請先在左側填寫完整的使用者基本資料，才能對症下藥，提高回答準確性。")
 
     else:
-        suggestion = chains.get_suggestion_chain(question = question)
-        with st.chat_message("ai"):
-            st.markdown(suggestion.get("result"))
+        try:
+            suggestion = chains.get_suggestion_chain(question = question)
+            utils.set_chat_history("ai", suggestion.get("result"),
+                                   [
+                                        {
+                                             "department": doc.metadata.get("department"),
+                                             "symptom": doc.metadata.get("symptom"),
+                                             "answer": doc.metadata.get("answer"),
+                                             "gender": doc.metadata.get("gender"),
+                                             "question": doc.page_content,
+                                        }
+                                        for doc in suggestion.get("source_documents", [])
+                                   ]
+                               )
+
+        except Exception as e:
+            print(f"Error Occurred when generating response: {e}")
+            utils.set_chat_history("ai", "抱歉，系統發生錯誤，請稍後再試或聯絡管理員。")
 

@@ -1,4 +1,5 @@
 import os
+import time
 import tomllib
 import pathlib
 import contextlib
@@ -70,3 +71,30 @@ def insert_symptom_subject_datas(datas: List[dict]):
             documents.append(Document(page_content=question, metadata=metadata))
 
         vectorstore.add_documents(documents, batch_size=100)
+
+def set_chat_history(role, content, references = None):
+    if role == "ai":
+        with st.chat_message("ai"):
+            placeholder = st.empty()
+            text = ""
+            for char in content:
+                text+=char
+                placeholder.markdown(text)
+                time.sleep(0.02)
+
+    else:
+        with st.chat_message(role):
+            st.write(content)
+
+    st.session_state['history'].append(
+        {
+            "role": role,
+            "content": content,
+            "references": references
+        }
+    )
+
+def write_history():
+    for message in st.session_state["history"]:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
