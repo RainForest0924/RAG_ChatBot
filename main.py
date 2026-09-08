@@ -90,6 +90,7 @@ if question := st.chat_input("請輸入您的問題，或是您想詢問的症�
             utils.set_chat_history("ai", suggestion.get("result"),
                                    [
                                         {
+                                            "_id":doc.metadata.get("_id"),
                                              "department": doc.metadata.get("department"),
                                              "symptom": doc.metadata.get("symptom"),
                                              "answer": doc.metadata.get("answer"),
@@ -104,3 +105,31 @@ if question := st.chat_input("請輸入您的問題，或是您想詢問的症�
             print(f"Error Occurred when generating response: {e}")
             utils.set_chat_history("ai", "抱歉，系統發生錯誤，請稍後再試或聯絡管理員。")
 
+# Store conclusion
+if st.session_state['history'] and not st.session_state['history'][-1]['content'] == "請先在左側填寫完整的使用者基本資料，才能對症下藥，提高回答準確性。":
+    with st.expander("📚問診結果"):
+        st.subheader("👦使用者基本資料")
+        st.write(f"**姓名**: {name or '未填寫'}")
+        st.write(f"**身份證字號/護照號碼**: {id_number or '未填寫'}")
+        st.write(f"**性別**: {gender}")
+        st.write(f"**出生年月日**: {birth_date.strftime('%Y-%m-%d')}")
+        st.write(f"**血型**: {blood_type}")
+
+        st.subheader("🩺詢問內容")
+        for msg in st.session_state['history'][-2:]:
+            speaker = "使用者" if msg["role"] == "user" else "問診機器人"
+            st.markdown(f"**{speaker}**: {msg['content']}")
+
+        if st.session_state['history'][-1].get("references"):
+            st.subheader("📖參考資料")
+            for ref in st.session_state['history'][-1]["references"]:
+                st.markdown(f"- **資料ID**: {ref['_id']}")
+                st.write(f"- **患者性別**: {ref['gender']}")
+                st.write(f"- **患者主訴**:")
+                st.write(f"- {ref['question']}")
+                st.write(f"- **科別**: {ref['department']}")
+                st.write(f"- **症狀概括**: {ref['symptom']}")
+                st.write(f"- **醫師建議**:")
+                st.write(f"- {ref['answer']}")
+                
+                st.markdown("---")
