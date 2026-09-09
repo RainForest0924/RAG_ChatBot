@@ -130,6 +130,6 @@ if st.session_state['history'] and not st.session_state['history'][-1]['content'
                 st.write(f"- **科別**: {ref['department']}")
                 st.write(f"- **症狀概括**: {ref['symptom']}")
                 st.write(f"- **醫師建議**:")
-                st.write(f"- {ref['answer']}")
+                st.write(f"- {ref['answer'].replace('回覆','')}")
                 
                 st.markdown("---")
