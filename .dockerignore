@@ -1,0 +1,14 @@
+.git
+.agents
+.codex
+.devcontainer
+.vscode
+.streamlit
+Env
+__pycache__
+*.pyc
+.env
+*.db
+*.log
+GPTAnswer.docx
+temp_symptom.txt

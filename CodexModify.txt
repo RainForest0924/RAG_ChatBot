@@ -19,3 +19,11 @@
   - Added a Streamlit dialog titled "當前支援詢問的科別" listing the currently supported departments.
   - Added sidebar button hover styling so the text presents as clickable.
   - Updated the sidebar clickable text color to white and hover color to gray.
+
+[2026-09-10]
+- Added Fly.io deployment support:
+  - Added Dockerfile using python:3.14.3-slim and Streamlit startup command for main.py on port 8080.
+  - Added fly.toml with Dockerfile build settings, Tokyo/Narita primary region, HTTPS HTTP service, and autoscaling-to-zero defaults.
+  - Added .dockerignore to keep local virtualenvs, logs, Git metadata, and local secrets out of the Docker build context.
+  - Updated requirements.txt with streamlit==1.63.0 for the Streamlit entrypoint and dnspython==2.8.0 for mongodb+srv DNS resolution.
+  - Updated utils.py and chains.py so secrets can be read from Fly.io environment variables or local Streamlit secrets.

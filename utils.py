@@ -14,11 +14,25 @@ from langchain_core.documents import Document
 from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
 
 
+def get_secret(name: str) -> str:
+    value = os.getenv(name)
+    if value:
+        return value
+
+    try:
+        return st.secrets[name]
+    except Exception as exc:
+        raise RuntimeError(
+            f"Missing required secret {name}. Set it in .streamlit/secrets.toml locally "
+            f"or with `fly secrets set {name}=...` on Fly.io."
+        ) from exc
+
+
 @contextlib.contextmanager
 def get_mongo_vectorstore():
 
-    mongodb_uri = st.secrets["MONGODB_URI"]
-    openai_api_key = st.secrets["OPENAI_API_KEY"]
+    mongodb_uri = get_secret("MONGODB_URI")
+    openai_api_key = get_secret("OPENAI_API_KEY")
 
     # if os.getenv("MONGODB_URI") is None:
     #     secret_file = pathlib.Path(__file__).parent / ".streamlit"/ "secrets.toml"

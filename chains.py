@@ -1,7 +1,6 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
-import streamlit as st
-from utils import get_mongo_vectorstore
+from utils import get_mongo_vectorstore, get_secret
 
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -68,7 +67,7 @@ def get_suggestion_chain(question:str):
     )
 
     with get_mongo_vectorstore() as vectorstore:
-        llm = ChatOpenAI(model = "gpt-5.4", temperature = 0, max_tokens = 600, api_key=st.secrets["OPENAI_API_KEY"])
+        llm = ChatOpenAI(model = "gpt-5.4", temperature = 0, max_tokens = 600, api_key=get_secret("OPENAI_API_KEY"))
         retriever = vectorstore.as_retriever(search_kwargs = {"k": 4})
         retrieve_chain = {
             "question": RunnablePassthrough(),
