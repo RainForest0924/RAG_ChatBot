@@ -27,3 +27,13 @@
   - Added .dockerignore to keep local virtualenvs, logs, Git metadata, and local secrets out of the Docker build context.
   - Updated requirements.txt with streamlit==1.63.0 for the Streamlit entrypoint and dnspython==2.8.0 for mongodb+srv DNS resolution.
   - Updated utils.py and chains.py so secrets can be read from Fly.io environment variables or local Streamlit secrets.
+
+[2026-09-14]
+- Updated .github/workflows/fly-deploy.yml for Fly.io GitHub Actions deployment:
+  - Updated the Fly.io continuous deployment documentation link.
+  - Added manual workflow_dispatch support.
+  - Added read-only repository permissions.
+  - Added FLY_APP environment variable for rag-chatbot-wild-tidepool-9132.
+  - Changed deploy command to pass explicit --config fly.toml and --app "$FLY_APP".
+  - Replaced the simple concurrency string with a branch-scoped concurrency group and cancel-in-progress.
+  - Added step names and a 30-minute deploy timeout.

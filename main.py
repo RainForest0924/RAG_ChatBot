@@ -5,6 +5,8 @@ from datetime import date
 import chains
 import utils
 
+__version__ = "1.0.0"
+
 if 'history' not in st.session_state:
     st.session_state['history'] = []
 
@@ -70,6 +72,7 @@ with st.sidebar:
         key="show_supported_departments",
     ):
         show_supported_departments()
+    st.caption(f"網站版本: {__version__}")
 
 # Main content
 st.title("台灣e院問診機器人🏥")
