@@ -3,3 +3,9 @@ Env/
 __pycache__/
 GPTAnswer.docx
 *.db
+.agents/
+.codex/
+.streamlit/
+.vscode/
+.git/
+.github/
