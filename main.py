@@ -5,7 +5,7 @@ from datetime import date
 import chains
 import utils
 
-__version__ = "1.0.0-alpha"
+__version__ = "1.0.0"
 
 if 'history' not in st.session_state:
     st.session_state['history'] = []
