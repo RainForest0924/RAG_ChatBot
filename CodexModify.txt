@@ -37,3 +37,26 @@
   - Changed deploy command to pass explicit --config fly.toml and --app "$FLY_APP".
   - Replaced the simple concurrency string with a branch-scoped concurrency group and cancel-in-progress.
   - Added step names and a 30-minute deploy timeout.
+
+[2026-09-15]
+- Added specification.md for the requested Streamlit login feature before implementation:
+  - Documented login screen components, authentication flow, lockout behavior, demo admin account, secrets configuration, session state, constraints, and acceptance criteria.
+- Updated main.py for the demo admin login flow:
+  - Added Streamlit session-state initialization for authenticated, failed_login_attempts, login_lockout_until, show_password, and history.
+  - Added Argon2 password verification against ADMIN_USERNAME and ADMIN_PASSWORD_HASH from project secret loading.
+  - Added login screen with account input, password input, password visibility toggle, login button, incorrect-credential error, and failed-login lockout.
+  - Wrapped the existing chatbot UI in render_chatbot() so unauthenticated users only see the login screen.
+  - Set temporary local/test lockout duration to 60 seconds per request.
+  - Fixed lockout remaining-time logic so failed attempts are not reset before an actual lockout expires.
+  - Added login_error_message session state and reruns after failed attempts so the disabled login button appears immediately after the fifth consecutive failure.
+  - Used utils.get_secret() for admin credentials so local .streamlit/secrets.toml and Fly.io environment secrets are both supported.
+- Updated .streamlit/secrets.toml:
+  - Added ADMIN_USERNAME for ChatBotAdmin.
+  - Added ADMIN_PASSWORD_HASH as an Argon2 hash for Test123456.
+- Updated requirements.txt:
+  - Added argon2-cffi==25.1.0 for Argon2 hash verification.
+- Local verification completed:
+  - Ran python -m py_compile main.py utils.py chains.py successfully.
+  - Verified ADMIN_PASSWORD_HASH validates Test123456 with Argon2.
+  - Verified initial login screen, successful admin login, invalid-credential error, password visibility toggle, five-failure lockout, and lockout expiry recovery with Streamlit AppTest.
+  - Started python -m streamlit run main.py --server.headless true --server.port 8501 and confirmed http://localhost:8501 returned HTTP 200.
