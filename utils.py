@@ -81,7 +81,6 @@ def insert_symptom_subject_datas(datas: List[dict]):
                 if key != "question"
             }
 
-
             documents.append(Document(page_content=question, metadata=metadata))
 
         vectorstore.add_documents(documents, batch_size=100)
