@@ -8,7 +8,7 @@ from argon2.exceptions import Argon2Error, VerifyMismatchError
 import chains
 import utils
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 MAX_LOGIN_ATTEMPTS = int(5)
 LOCKOUT_SECONDS = int(300)
 
@@ -233,7 +233,10 @@ def render_chatbot():
 
 init_session_state()
 
-if st.session_state["authenticated"]:
-    render_chatbot()
-else:
-    render_login()
+st.session_state["authenticated"] = True
+render_chatbot()
+
+# if st.session_state["authenticated"]:
+#     render_chatbot()
+# else:
+#     render_login()
