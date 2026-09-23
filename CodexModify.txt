@@ -60,3 +60,12 @@
   - Verified ADMIN_PASSWORD_HASH validates Test123456 with Argon2.
   - Verified initial login screen, successful admin login, invalid-credential error, password visibility toggle, five-failure lockout, and lockout expiry recovery with Streamlit AppTest.
   - Started python -m streamlit run main.py --server.headless true --server.port 8501 and confirmed http://localhost:8501 returned HTTP 200.
+
+[2026-09-23]
+- Updated requirements.txt after adding EvaluateModel.py:
+  - Added deepeval==4.2.5 for EvaluateModel.py evaluation test cases, metrics, and evaluate() usage.
+  - Updated existing pinned dependencies to the latest PyPI versions checked on 2026-09-23:
+    langchain-core==1.6.4, langchain-openai==1.6.4, python-dotenv==1.2.3,
+    numpy==2.5.3, selenium==4.49.0, openai==3.19.0, pymongo==4.18.1,
+    langchain-mongodb==0.12.1, and streamlit==1.64.0.
+  - Confirmed fake-useragent==2.2.0, dnspython==2.8.0, and argon2-cffi==25.1.0 were already current.
