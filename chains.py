@@ -1,9 +1,12 @@
+from typing import List
+
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from utils import get_mongo_vectorstore, get_secret
 
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+
+from RetrieveStrategy import parse_queries, query_prompt
 
 def format_docs(docs):
 
@@ -44,7 +47,25 @@ def format_docs(docs):
     return "\n\n".join(formatted_docs)
     
 
-def get_suggestion_chain(question:str):
+def retrieve_multiquery_documents(retriever, queries: List[str]):
+    """使用多個查詢批次檢索，並保留完整 Document 物件及其 metadata。"""
+
+    # 每個查詢都會對 MongoDB retriever 執行搜尋，最後合併所有搜尋結果。
+    result_list = retriever.batch(queries)
+    seen_content = set()
+    unique_documents = []
+
+    # 以 page_content 去重，避免同一份參考資料重複放入回答 context。
+    for result in result_list:
+        for doc in result:
+            if doc.page_content not in seen_content:
+                seen_content.add(doc.page_content)
+                unique_documents.append(doc)
+
+    return unique_documents
+
+
+def get_suggestion_chain(question: str):
     prompt_template = PromptTemplate.from_template(
         """
         你是一位專業且從醫三十多年德高望重的醫生, 請根據下列症狀資訊, 匯整出一段簡短的醫學建議，回答過程需符合以下規范:
@@ -69,32 +90,32 @@ def get_suggestion_chain(question:str):
     with get_mongo_vectorstore() as vectorstore:
         llm = ChatOpenAI(model = "gpt-5.4", temperature = 0, max_tokens = 600, api_key=get_secret("OPENAI_API_KEY"))
         retriever = vectorstore.as_retriever(search_kwargs = {"k": 4})
-        retrieve_chain = {
-            "question": RunnablePassthrough(),
-            "source_documents": retriever
-                        }
-        
-        rag_chain = (
-                    retrieve_chain | 
-                    RunnablePassthrough.assign(
-                    context=lambda x: format_docs(x["source_documents"])
-                    )
-                    | RunnablePassthrough.assign(
-                                        result=(
-                                        RunnableLambda(
-                                            lambda x: {
-                                                "question": x["question"],
-                                                "context": x["context"]
-                                                }
-                                                        )
-                    | prompt_template | llm | StrOutputParser()
-                                                )
-                                                )
-                    )
 
-        result = rag_chain.invoke(question)
+        # 先將原始問題改寫成三個不同角度的查詢問題；main.py 仍只需傳入一個字串。
+        query_generation_chain = query_prompt | llm | StrOutputParser()
+        generated_query_text = query_generation_chain.invoke({"question": question})
+        queries = parse_queries(generated_query_text)[:3]
 
-        return result
+        # 若模型輸出不足三個查詢，使用原始問題補足，確保批次檢索仍可執行。
+        queries.extend([question] * (3 - len(queries)))
+
+        # 使用三個查詢搜尋 MongoDB，合併並去除重複文件後建立回答 context。
+        source_documents = retrieve_multiquery_documents(retriever, queries)
+        context = format_docs(source_documents)
+
+        # 回答仍以原始問題為主，三個查詢取得的資料則作為參考 context。
+        result = (prompt_template | llm | StrOutputParser()).invoke(
+            {
+                "question": question,
+                "context": context,
+            }
+        )
+
+        # 維持 main.py 目前使用的回傳格式，讓 source_documents metadata 繼續可用。
+        return {
+            "result": result,
+            "source_documents": source_documents,
+        }
 
 def debug_retriever(question: str):
 
