@@ -69,3 +69,21 @@
     numpy==2.5.3, selenium==4.49.0, openai==3.19.0, pymongo==4.18.1,
     langchain-mongodb==0.12.1, and streamlit==1.64.0.
   - Confirmed fake-useragent==2.2.0, dnspython==2.8.0, and argon2-cffi==25.1.0 were already current.
+
+2026-10-11
+
+1. 修改 chains.py
+   - 重用 RetrieveStrategy.py 的 query_prompt 與 parse_queries。
+   - 新增 retrieve_multiquery_documents()，使用 MongoDB retriever 批次搜尋三個查詢問題。
+   - 對批次搜尋結果去除重複文件，同時保留完整 Document 物件與 metadata。
+   - get_suggestion_chain() 維持接收 str，以確保 main.py 不需修改。
+   - 將三個查詢取得的文件組合為 context，再交給原始回答 prompt 產生 result。
+   - 維持原本的 {"result": ..., "source_documents": ...} 回傳格式。
+   - 在所有主要修改處加入中文注釋。
+
+2. 修改 RetrieveStrategy.py
+   - 將測試用 InMemoryVectorStore 改為延後建立，避免 chains.py 匯入 query_prompt 時立即建立測試向量資料庫並呼叫 embedding API。
+   - 保留 RetrieveStrategy.py 原本的獨立 multi-query 測試流程。
+
+3. main.py
+   - 未修改。

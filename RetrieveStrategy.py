@@ -1,4 +1,5 @@
 import utils
+from functools import lru_cache
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 from typing import List
@@ -17,9 +18,14 @@ documents = [
 ]
 
 llm = ChatOpenAI(model="gpt-5.4", api_key=openai_api_key, temperature=0)
-embeddings = OpenAIEmbeddings(model = "text-embedding-3-small", api_key=openai_api_key)
-vectorestore = InMemoryVectorStore.from_texts(documents, embeddings)
-retriever = vectorestore.as_retriever(search_kwargs={"k": 3})
+
+
+# 延後建立測試用向量資料庫，避免其他模組匯入本檔案時立即呼叫 embedding API。
+@lru_cache(maxsize=1)
+def get_demo_retriever():
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", api_key=openai_api_key)
+    vectorstore = InMemoryVectorStore.from_texts(documents, embeddings)
+    return vectorstore.as_retriever(search_kwargs={"k": 3})
 
 # Build multiquery retriever
 query_prompt = ChatPromptTemplate.from_template(
@@ -48,7 +54,8 @@ def parse_queries(output: str) -> List[str]:
     return [line.strip() for line in output.strip().split('\n') if line.strip()]
 
 def batch_retrieve_and_deduplicate(queries: List[str]) -> List[str]:
-    result_list = retriever.batch(queries)
+    # 這個 retriever 只供 RetrieveStrategy.py 的獨立測試使用。
+    result_list = get_demo_retriever().batch(queries)
     seen_content = set()
     unique_results = []
 
