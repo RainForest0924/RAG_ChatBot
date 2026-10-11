@@ -8,7 +8,7 @@ from argon2.exceptions import Argon2Error, VerifyMismatchError
 import chains
 import utils
 
-__version__ = "2.0.1"
+__version__ = "2.1.0-dev"
 MAX_LOGIN_ATTEMPTS = int(5)
 LOCKOUT_SECONDS = int(300)
 
